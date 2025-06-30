@@ -1,0 +1,40 @@
+---Final Query for analysis
+--Replaced / with -
+UPDATE "COFFEESHOP"."COFFEESHOPSALES"."COFFEESHOPSALES_TABLE"
+SET transaction_date = REPLACE(transaction_date, '/', '-');
+
+---AGGREGATES
+SELECT COUNT(DISTINCT transaction_id) AS number_of_sales, 
+       SUM(transaction_qty*unit_price) AS Total_revenue,
+       SUM(transaction_qty) AS number_units_sold,
+       AVG(transaction_qty*unit_price) AS Average_sales,
+       MIN(TRANSACTION_TIME) AS store_open,
+       MAX(TRANSACTION_TIME) AS store_close,
+
+       ---Groups
+       CASE 
+            WHEN TRANSACTION_TIME BETWEEN '06:00:00' AND '11:59:59' THEN 'MORNING'
+            WHEN TRANSACTION_TIME BETWEEN '12:00:00' AND '15:59:59' THEN 'AFTERNOON'
+            WHEN transaction_time BETWEEN '16:00:00' AND '20:00:00' THEN 'Evening'
+            ELSE 'NIGHT'
+        END AS Time_buckets, 
+       ---Formats  
+       TO_DATE(transaction_date) AS purchase_date,
+       TO_CHAR(TO_DATE(transaction_date), 'YYYYMM') AS month_id, 
+       DAYNAME(TO_DATE(transaction_date)) AS day_of_week,
+
+       STORE_LOCATION,
+       PRODUCT_CATEGORY,
+       PRODUCT_DETAIL,
+       PRODUCT_TYPE,
+    
+FROM coffeeshop.coffeeshopsales.coffeeshopsales_table
+GROUP BY time_buckets, 
+        PURCHASE_DATE,
+         month_id, 
+         day_of_week,
+         store_location,
+         product_category,
+         product_detail,
+         product_type;
+
